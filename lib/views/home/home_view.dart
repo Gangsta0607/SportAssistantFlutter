@@ -141,6 +141,7 @@ class HomeView extends StatelessWidget {
                         exercise: exercise,
                         isCompleted: isCompleted,
                         showHistoryButton: isToday && hasProgress,
+                        mainScreen: true,
                         onTap: isToday && !isCompleted
                             ? () => Navigator.push(
                                   context,

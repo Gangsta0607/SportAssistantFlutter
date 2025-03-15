@@ -8,6 +8,7 @@ class ExerciseWidget extends StatelessWidget {
   final VoidCallback? onTap;
   final bool showHistoryButton;
   final Widget? editButtons;
+  final bool mainScreen;
 
   const ExerciseWidget({
     Key? key,
@@ -16,6 +17,7 @@ class ExerciseWidget extends StatelessWidget {
     this.onTap,
     this.showHistoryButton = true,
     this.editButtons,
+    this.mainScreen = false,
   }) : super(key: key);
 
   // Функция для склонения слова "повторение" в зависимости от числа
@@ -30,6 +32,14 @@ class ExerciseWidget extends StatelessWidget {
     } else {
       return 'повторений';
     }
+  }
+
+  // Функция для проверки, совпадают ли даты (без учета времени)
+  bool _isSameDate(DateTime? date1, DateTime date2) {
+    if (date1 == null) return false;
+    return date1.year == date2.year &&
+           date1.month == date2.month &&
+           date1.day == date2.day;
   }
 
   @override
@@ -90,7 +100,7 @@ class ExerciseWidget extends StatelessWidget {
                     children: [
                       if (editButtons != null)
                         editButtons!,
-                      if (!isCompleted && showHistoryButton && editButtons == null)
+                      if (!mainScreen && showHistoryButton && editButtons == null)
                         IconButton(
                           icon: Icon(
                             Icons.history,
@@ -107,7 +117,7 @@ class ExerciseWidget extends StatelessWidget {
                             );
                           },
                         ),
-                      if (isCompleted)
+                      if (isCompleted && mainScreen)
                         Padding(
                           padding: const EdgeInsets.only(left: 8),
                           child: Container(
@@ -149,7 +159,7 @@ class ExerciseWidget extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               _buildExerciseDetails(context, isLightTheme),
-              if (!isCompleted && !showHistoryButton && editButtons == null && onTap != null) GestureDetector(
+              if (mainScreen && !isCompleted && onTap != null && !_isSameDate(exercise.lastExecuted, DateTime.now())) GestureDetector(
                 onTap: onTap,
                 child: Container(
                   padding: const EdgeInsets.all(14),
@@ -175,7 +185,7 @@ class ExerciseWidget extends StatelessWidget {
                     ]
                   )
                 ),
-              )
+              ),
             ],
           ),
         ),

@@ -107,7 +107,7 @@ class MyAppState extends State<MyApp> {
     final viewModel = context.watch<SettingsViewModel>();
     
     return MaterialApp(
-      title: 'Sport Assistant',
+      title: 'Спорт Ассистент',
       theme: _themeManager.getLightTheme(viewModel.accentColor),
       darkTheme: _themeManager.getDarkTheme(viewModel.accentColor),
       themeMode: _getThemeMode(),

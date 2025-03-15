@@ -244,7 +244,7 @@ class DoExerciseView extends StatelessWidget {
     final theme = Theme.of(context);
     
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 0),
+      padding: const EdgeInsets.only(bottom: 20),
       child: Stack(
         children: [
           Column(
@@ -444,7 +444,8 @@ class DoExerciseView extends StatelessWidget {
                                     ],
                                   ),
                                 ],
-                                if (isCurrentSet && !viewModel.isResting && index < viewModel.actualSets.length - 1)
+                                if (isCurrentSet && !viewModel.isResting && index < viewModel.actualSets.length - 1) ...[
+                                const SizedBox(height: 4),
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
@@ -456,6 +457,7 @@ class DoExerciseView extends StatelessWidget {
                                       ),
                                     ],
                                   ),
+                                ],
                               ],
                             ),
                           ),

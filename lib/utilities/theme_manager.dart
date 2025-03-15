@@ -10,21 +10,16 @@ class ThemeManager {
     
   // Доступные акцентные цвета
   static const List<Color> availableColors = [
-    Color(0xFF2196F3),  // Голубой
-    Color(0xFF9C27B0),  // Пурпурный
-    Color(0xFF4CAF50),  // Зеленый
-    Color(0xFFFF5722),  // Оранжево-красный
-    Color(0xFF3F51B5),  // Индиго
-    Color(0xFFE91E63),  // Розовый
-    Color(0xFF009688),  // Бирюзовый
-    Color(0xFFFFC107),  // Янтарный
-    Color(0xFF673AB7),  // Темно-фиолетовый
-    Color(0xFF00BCD4),  // Циан
-    Color(0xFFF44336),  // Красный
-    Color(0xFF8BC34A),  // Светло-зеленый
-    Color(0xFF1976D2),  // Синий
-    Color(0xFFA0A0FF),
-  ];
+  Color(0xFF1E90FF),
+  Color(0xFF9400D3),
+  Color(0xFF3CB371),
+  Color(0xFFFF4500),
+  Color(0xFFFF69B4),
+  Color(0xFFFFD700),
+  Color(0xFF4682B4),
+  Color(0xFF32CD32),
+  Color(0xFFA0A0FF),
+];
   
   ThemeManager._internal();
   

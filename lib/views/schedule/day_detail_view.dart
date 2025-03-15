@@ -23,8 +23,6 @@ class DayDetailViewState extends State<DayDetailView> {
   static const double _defaultSpacing = 16.0;
   static const double _defaultIconSize = 24.0;
   static const double _defaultEmptyStateIconSize = 64.0;
-  static const double _defaultBorderRadius = 30.0;
-  static const Duration _animationDuration = Duration(milliseconds: 200);
   static const double _exerciseMaxWidth = 400.0;
 
   late Day _currentDay;
@@ -48,12 +46,6 @@ class DayDetailViewState extends State<DayDetailView> {
     _updateExercises((exercises) => exercises..add(exercise));
   }
 
-  void _removeExercise(int index) {
-    _updateExercises((exercises) {
-      exercises.removeAt(index);
-      return exercises;
-    });
-  }
 
   void _editExercise(int index, Exercise updatedExercise) {
     _updateExercises((exercises) {
@@ -100,14 +92,79 @@ class DayDetailViewState extends State<DayDetailView> {
             _editExercise(index, updatedExercise);
           }),
         ),
-        IconButton(
+        PopupMenuButton<String>(
+          tooltip: 'Удалить',
           icon: Icon(
             Icons.delete_outline,
             size: 20,
             color: theme.colorScheme.error,
           ),
-          tooltip: 'Удалить',
-          onPressed: () => _removeExercise(index),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          elevation: 4,
+          position: PopupMenuPosition.under,
+          color: theme.colorScheme.surface,
+          itemBuilder: (context) => [
+            PopupMenuItem(
+              value: 'delete',
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.error.withAlpha(26),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        Icons.delete,
+                        color: theme.colorScheme.error,
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      'Подтвердить удаление',
+                      style: TextStyle(
+                        color: theme.colorScheme.error,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+          onSelected: (value) {
+            if (value == 'delete') {
+              // Добавляем небольшую анимацию перед удалением
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Упражнение "${exercise.title}" удалено'),
+                  behavior: SnackBarBehavior.floating,
+                  margin: const EdgeInsets.all(8),
+                  duration: const Duration(seconds: 2),
+                  action: SnackBarAction(
+                    label: 'Отменить',
+                    onPressed: () {
+                      // Восстанавливаем упражнение, если пользователь нажал "Отменить"
+                      _updateExercises((exercises) {
+                        exercises.insert(index, exercise);
+                        return exercises;
+                      });
+                    },
+                  ),
+                ),
+              );
+              _updateExercises((exercises) {
+                exercises.removeAt(index);
+                return exercises;
+              });
+            }
+          },
         ),
       ],
     );
@@ -121,7 +178,7 @@ class DayDetailViewState extends State<DayDetailView> {
       appBar: AppBar(
         title: Text(_currentDay.name),
         actions: [
-          IconButton(
+          if (_currentDay.exercises.isNotEmpty) IconButton(
             icon: Icon(
               _isEditMode ? Icons.check : Icons.edit,
             ),
@@ -139,15 +196,7 @@ class DayDetailViewState extends State<DayDetailView> {
           ),
         ],
       ),
-      floatingActionButton: _isEditMode ? AnimatedContainer(
-        duration: _animationDuration,
-        child: FloatingActionButton(
-          onPressed: _navigateToAddExercise,
-          elevation: 0,
-          highlightElevation: 0,
-          child: const Icon(Icons.add),
-        ),
-      ) : null,
+      floatingActionButton: null,
     );
   }
 
@@ -172,32 +221,10 @@ class DayDetailViewState extends State<DayDetailView> {
               ),
             ),
             const SizedBox(height: _defaultSpacing),
-            const Text(
-              'Нажмите на кнопку ниже, чтобы добавить упражнение',
-              style: TextStyle(
-                fontSize: 16,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: _defaultSpacing * 2),
-            AnimatedContainer(
-              duration: _animationDuration,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(_defaultBorderRadius),
-                boxShadow: [
-                  BoxShadow(
-                    color: theme.colorScheme.primary.withAlpha((0.2 * 255).toInt()),
-                    blurRadius: 10,
-                    spreadRadius: 1,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: ElevatedButton.icon(
-                label: const Text("Добавить упражнение"),
+            TextButton.icon(
+                label: const Text("Добавить упражнение", style: TextStyle(fontSize: 16),),
                 onPressed: _navigateToAddExercise,
               ),
-            ),
           ],
         ),
       ),
@@ -205,24 +232,80 @@ class DayDetailViewState extends State<DayDetailView> {
   }
 
   Widget _buildExercisesList() {
-    return ListView.separated(
-      padding: const EdgeInsets.all(_defaultPadding),
-      itemCount: _currentDay.exercises.length,
-      separatorBuilder: (context, index) => const SizedBox(height: _defaultSpacing),
-      itemBuilder: (context, index) {
-        final exercise = _currentDay.exercises[index];
-        final theme = Theme.of(context);
-        return Center(
+    final theme = Theme.of(context);
+    // Создаем список виджетов для отображения
+    final List<Widget> listItems = [];
+    // Добавляем все упражнения
+    for (int index = 0; index < _currentDay.exercises.length; index++) {
+      final exercise = _currentDay.exercises[index];
+      listItems.add(
+        Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: _exerciseMaxWidth),
             child: ExerciseWidget(
+              key: ValueKey('exercise_${exercise.id}'),
               exercise: exercise,
               showHistoryButton: !_isEditMode,
               editButtons: _isEditMode ? _buildEditButtons(exercise, index, theme) : null,
             ),
           ),
-        );
-      },
+        ),
+      );
+    }
+    // Если в режиме редактирования, добавляем кнопку "Добавить упражнение" в конец списка
+    if (_isEditMode) {
+      listItems.add(
+        Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: _exerciseMaxWidth),
+            child: Card(
+              margin: EdgeInsets.zero,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(16),
+                onTap: _navigateToAddExercise,
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.primary.withAlpha(26),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          Icons.add,
+                          color: theme.colorScheme.primary,
+                          size: 22,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Text(
+                        'Добавить упражнение',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: theme.colorScheme.primary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+    // Возвращаем ListView с разделителями
+    return ListView.separated(
+      padding: const EdgeInsets.all(_defaultPadding),
+      itemCount: listItems.length,
+      separatorBuilder: (context, index) => const SizedBox(height: _defaultSpacing),
+      itemBuilder: (context, index) => listItems[index],
     );
   }
 } 
